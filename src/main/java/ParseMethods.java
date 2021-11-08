@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 public class ParseMethods {
 
     public static void listClasses(String filePath) {
-        new VoidVisitorAdapter<>() {
+        new VoidVisitorAdapter<Object>() {
             @Override
             public void visit(MethodDeclaration n, Object arg) {
                 super.visit(n, arg);
