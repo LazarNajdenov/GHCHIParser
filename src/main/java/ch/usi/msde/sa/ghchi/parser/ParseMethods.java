@@ -105,10 +105,11 @@ public class ParseMethods {
             public void visit(MethodDeclaration n, Object arg) {
                 super.visit(n, arg);
                 String name = n.getNameAsString();
-                boolean isTestMethod = name.toLowerCase().contains("test");
                 Optional<BlockStmt> methodBody = n.getBody();
                 int statements = methodBody.map(BlockStmt::getStatements).map(NodeList::size).orElse(0);
-                if (methodBody.isPresent() && !isTestMethod && statements > 2 && name.length() > 2) {
+                boolean correctSize = statements > 2 && statements < 20;
+                boolean isTestMethod = name.toLowerCase().contains("test");
+                if (methodBody.isPresent() && !isTestMethod && correctSize) {
                     String javaDoc = n.getJavadocComment()
                             .map(JavadocComment::toString)
                             .map(CharMatcher.ascii()::retainFrom)
