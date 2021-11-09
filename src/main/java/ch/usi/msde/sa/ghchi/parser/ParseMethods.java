@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 public class ParseMethods {
 
@@ -79,9 +80,8 @@ public class ParseMethods {
             }
         } else {
             boolean canSkip = canSkip(dirName, ".*(main)|(test).*");
-            Optional<String> fileExtension =  getFileExtension(dirName);
-            boolean hasFileExtension = fileExtension.isPresent();
-            if (!canSkip && hasFileExtension && fileExtension.get().equals("java")) {
+            String extension = FilenameUtils.getExtension(dirName);
+            if (!canSkip && extension.equals("java")) {
                 parseClassMethods(dir, methodLines);
             }
         }
@@ -89,13 +89,6 @@ public class ParseMethods {
 
     private static boolean canSkip(String name, String regex) {
         return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(name).matches();
-    }
-
-    private static Optional<String> getFileExtension(String filename) {
-        return Optional
-                .ofNullable(filename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
     }
 
     /**
