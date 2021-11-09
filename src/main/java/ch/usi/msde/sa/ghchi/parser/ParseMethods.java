@@ -28,7 +28,7 @@ public class ParseMethods {
     static String directory = "/tmp/clonedRepo";
 
     public static void main(String[] args) throws Exception {
-        String csvFileName = "/tmp/methods.csv";
+        String csvFileName = args[0];
         Scanner scanner = new Scanner(new File("./repolist.txt"));
         while (scanner.hasNextLine()) {
             String repositoryName = scanner.nextLine();
