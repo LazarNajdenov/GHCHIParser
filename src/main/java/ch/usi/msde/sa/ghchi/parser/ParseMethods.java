@@ -29,6 +29,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class ParseMethods {
 
@@ -42,7 +43,7 @@ public class ParseMethods {
             String repositoryName = scanner.nextLine();
             cloneRepository(repositoryName);
             File file = new File(directory + "/" + repositoryName);
-            List<List<String>> methodLines = new ArrayList<>();
+            List<Pair<String, String>> methodLines = new ArrayList<>();
             parseJavaFiles(file, methodLines);
             saveMethods(csvFileName, methodLines);
             deleteClone(repositoryName);
@@ -75,7 +76,7 @@ public class ParseMethods {
     /**
      * Methods used to iterate through all the java files in the directory and parse them successively
      * */
-    public static void parseJavaFiles(File dir, List<List<String>> methodLines) throws IOException {
+    public static void parseJavaFiles(File dir, List<Pair<String, String>> methodLines) throws IOException {
         String dirName = dir.getName();
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
@@ -99,7 +100,7 @@ public class ParseMethods {
     /**
      * Methods used for parsing the methods for each class
      * */
-    private static void parseClassMethods(File file, List<List<String>> dataLines) throws FileNotFoundException {
+    private static void parseClassMethods(File file, List<Pair<String, String>> dataLines) throws FileNotFoundException {
         new VoidVisitorAdapter<>() {
             @Override
             public void visit(MethodDeclaration n, Object arg) {
@@ -134,7 +135,7 @@ public class ParseMethods {
 
                     String method = javaDoc + signature + parameters + body;
 
-                    dataLines.add(List.of(name, method));
+                    dataLines.add(Pair.of(name, method));
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
@@ -145,14 +146,14 @@ public class ParseMethods {
      *
      * @param filePath The path of the CSV file.
      */
-    private static void saveMethods(String filePath, List<List<String>> dataLines) throws IOException {
+    private static void saveMethods(String filePath, List<Pair<String, String>> dataLines) throws IOException {
         FileWriter writer = new FileWriter(filePath, true);
         Collections.shuffle(dataLines);
         dataLines = dataLines.stream().limit(1000).collect(Collectors.toList());
 
         CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT);
-        for (List<String> line : dataLines) {
-            printer.printRecord(line.get(0), line.get(1));
+        for (Pair<String, String> line : dataLines) {
+            printer.printRecord(line.getKey(), line.getValue());
         }
 
         writer.close();
