@@ -113,11 +113,15 @@ public class ParseMethods {
                 if (bodyBlock.isPresent() && !isTestMethod && correctSize) {
                     String javaDoc = declaration.getJavadocComment()
                             .map(JavadocComment::toString)
+                            .map(ParseMethods::removeHTMLTags)
+                            // TODO: 10.11.21 Remove code fragments that might be in the javadoc
+                            // TODO: 10.11.21 Remove tags like {@link ...}
+                            .map(ParseMethods::removeJavadocMetadata)
+                            .map(ParseMethods::removeJavadocFormatting)
                             .map(CharMatcher.ascii()::retainFrom)
                             .map(StringUtils::normalizeSpace)
-                            // Apply stopword removal
-                            // Apply * removal
-                            .map(comment -> comment + " <SEP> ")
+                            // TODO: 10.11.21 Remove stop-words
+                            .map(comment -> (!comment.isEmpty()) ? comment + " <SEP> " : null)
                             .orElse("");
 
                     String signature = declaration.getType() + " " + declaration.getNameAsString();
@@ -137,6 +141,18 @@ public class ParseMethods {
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
+    }
+
+    private static String removeHTMLTags(String text) {
+        return text.replaceAll("<[^>]*>", " ");
+    }
+
+    private static String removeJavadocMetadata(String text) {
+        return text.split("\\*\\s*@.*")[0];
+    }
+
+    private static String removeJavadocFormatting(String text) {
+        return text.replaceAll("((/\\*)?\\*\\s?/?)", " ");
     }
 
     /**
