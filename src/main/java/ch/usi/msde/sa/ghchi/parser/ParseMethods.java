@@ -4,6 +4,8 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.Comment;
+import com.github.javaparser.ast.comments.JavadocComment;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.File;
@@ -15,14 +17,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.google.common.base.CharMatcher;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ParseMethods {
 
@@ -98,81 +103,38 @@ public class ParseMethods {
             @Override
             public void visit(MethodDeclaration n, Object arg) {
                 super.visit(n, arg);
-                if (n.getBody().isPresent()) {
-                    if (!n.getNameAsString().toLowerCase().contains("test")) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        addJavaDoc(n, stringBuilder);
-                        addSignature(n, stringBuilder);
-                        addBody(n, stringBuilder);
-                        dataLines.add(List.of(n.getNameAsString(), stringBuilder.toString()));
-                    }
+                String name = n.getNameAsString();
+                boolean isTestMethod = name.toLowerCase().contains("test");
+                Optional<BlockStmt> methodBody = n.getBody();
+                if (methodBody.isPresent() && !isTestMethod) {
+                    String javaDoc = n.getJavadocComment()
+                            .map(JavadocComment::toString)
+                            .map(CharMatcher.ascii()::retainFrom)
+                            .map(StringUtils::normalizeSpace)
+                            // Apply stopword removal
+                            // Apply * removal
+                            .map(comment -> comment + " <SEP> ")
+                            .orElse("");
+
+                    String signature = n.getType() + " " + n.getNameAsString();
+                    String parameters = n.getParameters().stream()
+                            .map(Node::toString)
+                            .collect(Collectors.joining(", ", "(", ") "));
+
+                    methodBody.get().getAllContainedComments().forEach(Comment::remove);
+
+                    String body = methodBody
+                            .map(BlockStmt::toString)
+                            .map(CharMatcher.ascii()::retainFrom)
+                            .map(StringUtils::normalizeSpace)
+                            .orElse(";");
+
+                    String method = javaDoc + signature + parameters + body;
+
+                    dataLines.add(List.of(name, method));
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
-    }
-
-    private static void addJavaDoc(MethodDeclaration n, StringBuilder stringBuilder) {
-        n.getJavadocComment().ifPresent(javadoc -> {
-            stringBuilder.append(cleanTextContent(javadoc.toString()));
-            stringBuilder.append(" <SEP> ");
-        });
-    }
-
-    private static void addSignature(MethodDeclaration n, StringBuilder stringBuilder) {
-        addTypeAndName(n, stringBuilder);
-        addParameters(n, stringBuilder);
-    }
-
-    private static void addBody(MethodDeclaration n, StringBuilder stringBuilder) {
-        n.getBody().ifPresent(content -> {
-            removeComments(content);
-            stringBuilder.append(cleanTextContent(content.toString()));
-        });
-    }
-
-    private static void removeComments(Node node) {
-        for (Comment child : node.getAllContainedComments()) {
-            child.remove();
-        }
-    }
-
-    private static void addTypeAndName(MethodDeclaration n, StringBuilder stringBuilder) {
-        stringBuilder
-                .append(n.getType())
-                .append(" ")
-                .append(n.getNameAsString());
-    }
-
-    private static void addParameters(MethodDeclaration n, StringBuilder stringBuilder) {
-        stringBuilder.append("(");
-        if (n.getParameters().isNonEmpty()) {
-            n.getParameters().forEach(parameter -> {
-                stringBuilder.append(parameter);
-                if (n.getParameters().getLast().isPresent() && !parameter.equals(n.getParameters().getLast().get())) {
-                    stringBuilder.append(", ");
-                }
-            });
-        }
-        stringBuilder.append(") ");
-    }
-
-    /**
-     * Applies the following processing operations on the input:
-     * <ul>
-     *     <li>Non-ascii characters are removed;</li>
-     *     <li>Tabs, newlines and carriage returns are replaced with a single space;</li>
-     *     <li>Replaces multiple contiguous whitespaces with a single whitespace;</li>
-     *     <li>Trims the input.</li>
-     * </ul>
-     *
-     * @param text A textual input
-     * @return The cleaned counterpart
-     */
-    private static String cleanTextContent(String text) {
-        text = text.replaceAll("[^\\x00-\\x7F]", "");
-        text = text.replaceAll("([\\n\\r\\t])", " ");
-        text = text.replaceAll("\\s+", " ");
-        return text.trim();
     }
 
     /**
