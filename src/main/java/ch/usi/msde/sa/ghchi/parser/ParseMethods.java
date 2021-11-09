@@ -103,15 +103,15 @@ public class ParseMethods {
     private static void parseClassMethods(File file, List<Pair<String, String>> dataLines) throws FileNotFoundException {
         new VoidVisitorAdapter<>() {
             @Override
-            public void visit(MethodDeclaration n, Object arg) {
-                super.visit(n, arg);
-                String name = n.getNameAsString();
-                Optional<BlockStmt> methodBody = n.getBody();
-                int statements = methodBody.map(BlockStmt::getStatements).map(NodeList::size).orElse(0);
+            public void visit(MethodDeclaration declaration, Object arg) {
+                super.visit(declaration, arg);
+                String name = declaration.getNameAsString();
+                Optional<BlockStmt> bodyBlock = declaration.getBody();
+                int statements = bodyBlock.map(BlockStmt::getStatements).map(NodeList::size).orElse(0);
                 boolean correctSize = statements > 2 && statements < 20;
                 boolean isTestMethod = name.toLowerCase().contains("test");
-                if (methodBody.isPresent() && !isTestMethod && correctSize) {
-                    String javaDoc = n.getJavadocComment()
+                if (bodyBlock.isPresent() && !isTestMethod && correctSize) {
+                    String javaDoc = declaration.getJavadocComment()
                             .map(JavadocComment::toString)
                             .map(CharMatcher.ascii()::retainFrom)
                             .map(StringUtils::normalizeSpace)
@@ -120,22 +120,20 @@ public class ParseMethods {
                             .map(comment -> comment + " <SEP> ")
                             .orElse("");
 
-                    String signature = n.getType() + " " + n.getNameAsString();
-                    String parameters = n.getParameters().stream()
+                    String signature = declaration.getType() + " " + declaration.getNameAsString();
+                    String parameters = declaration.getParameters().stream()
                             .map(Node::toString)
                             .collect(Collectors.joining(", ", "(", ") "));
 
-                    methodBody.get().getAllContainedComments().forEach(Comment::remove);
+                    bodyBlock.get().getAllContainedComments().forEach(Comment::remove);
 
-                    String body = methodBody
+                    String body = bodyBlock
                             .map(BlockStmt::toString)
                             .map(CharMatcher.ascii()::retainFrom)
                             .map(StringUtils::normalizeSpace)
                             .orElse(";");
 
-                    String method = javaDoc + signature + parameters + body;
-
-                    dataLines.add(Pair.of(name, method));
+                    dataLines.add(Pair.of(name, javaDoc + signature + parameters + body));
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
