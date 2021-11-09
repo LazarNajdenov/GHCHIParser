@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -181,5 +180,7 @@ public class ParseMethods {
         for (List<String> line : dataLines) {
             printer.printRecord(line.get(0), line.get(1));
         }
+
+        writer.close();
     }
 }
