@@ -159,9 +159,9 @@ public class ParseMethods {
     /**
      * Applies the following processing operations on the input:
      * <ul>
-     *     <li>Non-ascii characters are replaced with empty string;</li>
-     *     <li>Removes tabs, newlines and carrige returns;</li>
-     *     <li>Replaces multiple whitespaces with a single whitespace;</li>
+     *     <li>Non-ascii characters are removed;</li>
+     *     <li>Tabs, newlines and carriage returns are replaced with a single space;</li>
+     *     <li>Replaces multiple contiguous whitespaces with a single whitespace;</li>
      *     <li>Trims the input.</li>
      * </ul>
      *
@@ -170,7 +170,7 @@ public class ParseMethods {
      */
     private static String cleanTextContent(String text) {
         text = text.replaceAll("[^\\x00-\\x7F]", "");
-        text = text.replaceAll("([\\n\\r\\t])", "");
+        text = text.replaceAll("([\\n\\r\\t])", " ");
         text = text.replaceAll("\\s+", " ");
         return text.trim();
     }
