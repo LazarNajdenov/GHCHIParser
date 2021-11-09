@@ -2,6 +2,7 @@ package ch.usi.msde.sa.ghchi.parser;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.JavadocComment;
@@ -106,7 +107,8 @@ public class ParseMethods {
                 String name = n.getNameAsString();
                 boolean isTestMethod = name.toLowerCase().contains("test");
                 Optional<BlockStmt> methodBody = n.getBody();
-                if (methodBody.isPresent() && !isTestMethod) {
+                int statements = methodBody.map(BlockStmt::getStatements).map(NodeList::size).orElse(0);
+                if (methodBody.isPresent() && !isTestMethod && statements > 2 && name.length() > 2) {
                     String javaDoc = n.getJavadocComment()
                             .map(JavadocComment::toString)
                             .map(CharMatcher.ascii()::retainFrom)
