@@ -35,7 +35,7 @@ public class ParseMethods {
             cloneRepository(repositoryName);
             File file = new File(directory + "/" + repositoryName);
             List<List<String>> methodLines = new ArrayList<>();
-            parseJavaFiles(file, csvFileName, methodLines);
+            parseJavaFiles(file, methodLines);
             saveMethods(csvFileName, methodLines);
             deleteClone(repositoryName);
         }
@@ -67,13 +67,13 @@ public class ParseMethods {
     /**
      * Methods used to iterate through all the java files in the directory and parse them successively
      * */
-    public static void parseJavaFiles(File dir, String csvFileName, List<List<String>> methodLines) throws IOException {
+    public static void parseJavaFiles(File dir, List<List<String>> methodLines) throws IOException {
         String dirName = dir.getName();
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
             File[] validFiles = Objects.requireNonNull(files);
             for (File file : validFiles) {
-                if (!canSkip(dirName, ".*(test).*")) parseJavaFiles(file, csvFileName, methodLines);
+                if (!canSkip(dirName, ".*(test).*")) parseJavaFiles(file, methodLines);
             }
         } else {
             boolean canSkip = canSkip(dirName, ".*(main)|(test).*");
