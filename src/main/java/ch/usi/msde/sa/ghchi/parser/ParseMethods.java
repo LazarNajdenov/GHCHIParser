@@ -20,6 +20,8 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
 
 public class ParseMethods {
@@ -173,33 +175,18 @@ public class ParseMethods {
     }
 
     /**
-     * Methods used for saving the data in the CSV file.
-     * */
-    private static void saveMethods(String csvFileName, List<List<String>> dataLines) throws IOException {
-        if (dataLines.size() > 1000) {
-            Collections.shuffle(dataLines);
-            dataLines = dataLines.stream().limit(1000).collect(Collectors.toList());
-        }
-        FileWriter writer = new FileWriter(csvFileName, true);
-        for (List<String> dataLine : dataLines) {
-            String method = convertToCSV(dataLine);
-            writer.write(method + "\n");
-        }
-        writer.close();
-    }
+     * Used for saving the extracted methods to a CSV file.
+     *
+     * @param filePath The path of the CSV file.
+     */
+    private static void saveMethods(String filePath, List<List<String>> dataLines) throws IOException {
+        FileWriter writer = new FileWriter(filePath, true);
+        Collections.shuffle(dataLines);
+        dataLines = dataLines.stream().limit(1000).collect(Collectors.toList());
 
-    private static String convertToCSV(List<String> data) {
-        return data.stream()
-                .map(ParseMethods::escapeSpecialCharacters)
-                .collect(Collectors.joining(","));
-    }
-
-    private static String escapeSpecialCharacters(String data) {
-        String escapedData = data.replaceAll("\\R", " ");
-        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
-            data = data.replace("\"", "\"\"");
-            escapedData = "\"" + data + "\"";
+        CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT);
+        for (List<String> line : dataLines) {
+            printer.printRecord(line.get(0), line.get(1));
         }
-        return escapedData;
     }
 }
