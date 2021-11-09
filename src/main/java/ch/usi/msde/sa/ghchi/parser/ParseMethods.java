@@ -156,12 +156,21 @@ public class ParseMethods {
         stringBuilder.append(") ");
     }
 
+    /**
+     * Applies the following processing operations on the input:
+     * <ul>
+     *     <li>Non-ascii characters are replaced with empty string;</li>
+     *     <li>Removes tabs, newlines and carrige returns;</li>
+     *     <li>Replaces multiple whitespaces with a single whitespace;</li>
+     *     <li>Trims the input.</li>
+     * </ul>
+     *
+     * @param text A textual input
+     * @return The cleaned counterpart
+     */
     private static String cleanTextContent(String text) {
-        // Replace non-ascii characters with empty string
         text = text.replaceAll("[^\\x00-\\x7F]", "");
-        // Replace non-visible characters with empty string
         text = text.replaceAll("([\\n\\r\\t])", "");
-        // Replace set of whitespace characters with only one space
         text = text.replaceAll("\\s+", " ");
         return text.trim();
     }
