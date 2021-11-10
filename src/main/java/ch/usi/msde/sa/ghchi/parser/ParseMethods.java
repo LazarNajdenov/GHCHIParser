@@ -114,14 +114,15 @@ public class ParseMethods {
                     String javaDoc = declaration.getJavadocComment()
                             .map(JavadocComment::toString)
                             .map(ParseMethods::removePreformattedText)
-                            // TODO: 10.11.21 Extract references: {@link #...}
-                            // TODO: 10.11.21 Extract literals: {@code ...}
+                            .map(ParseMethods::replaceJavadocReferences)
+                            .map(ParseMethods::replaceJavadocLiterals)
                             .map(ParseMethods::removeHTMLTags)
                             .map(ParseMethods::removeJavadocMetadata)
                             .map(ParseMethods::removeJavadocFormatting)
                             .map(CharMatcher.ascii()::retainFrom)
                             .map(StringUtils::normalizeSpace)
                             .map(String::toLowerCase)
+                            .map(String::trim)
                             // TODO: 10.11.21 Remove stop-words
                             .map(comment -> (!comment.isEmpty()) ? comment + " <SEP> " : null)
                             .orElse("");
@@ -143,6 +144,14 @@ public class ParseMethods {
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
+    }
+
+    private static String replaceJavadocReferences(String text) {
+        return text.replaceAll("\\{@(?:value|link(?:plain)?)\\s(?:.*?#)?(\\w+).*?}", "$1");
+    }
+
+    private static String replaceJavadocLiterals(String text) {
+        return text.replaceAll("\\{@(?:code|literal|serial(?:Data|Field)?|docRoot|inheritDoc)\\s?(.*?)}", "$1");
     }
 
     private static String removeHTMLTags(String text) {
