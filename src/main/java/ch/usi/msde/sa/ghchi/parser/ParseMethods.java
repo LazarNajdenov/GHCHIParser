@@ -113,13 +113,15 @@ public class ParseMethods {
                 if (bodyBlock.isPresent() && !isTestMethod && correctSize) {
                     String javaDoc = declaration.getJavadocComment()
                             .map(JavadocComment::toString)
+                            .map(ParseMethods::removePreformattedText)
+                            // TODO: 10.11.21 Extract references: {@link #...}
+                            // TODO: 10.11.21 Extract literals: {@code ...}
                             .map(ParseMethods::removeHTMLTags)
-                            // TODO: 10.11.21 Remove code fragments that might be in the javadoc
-                            // TODO: 10.11.21 Remove tags like {@link ...}
                             .map(ParseMethods::removeJavadocMetadata)
                             .map(ParseMethods::removeJavadocFormatting)
                             .map(CharMatcher.ascii()::retainFrom)
                             .map(StringUtils::normalizeSpace)
+                            .map(String::toLowerCase)
                             // TODO: 10.11.21 Remove stop-words
                             .map(comment -> (!comment.isEmpty()) ? comment + " <SEP> " : null)
                             .orElse("");
@@ -145,6 +147,10 @@ public class ParseMethods {
 
     private static String removeHTMLTags(String text) {
         return text.replaceAll("<[^>]*>", " ");
+    }
+
+    private static String removePreformattedText(String text) {
+        return text.replaceAll("(\\s\\*\\s)*<pre>(.|\\n)*?</pre>", " ");
     }
 
     private static String removeJavadocMetadata(String text) {
