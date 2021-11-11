@@ -1,5 +1,6 @@
 package ch.usi.msde.sa.ghchi.parser;
 
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
@@ -94,7 +95,13 @@ public class ParseMethods {
             boolean canSkip = canSkip(dirName, ".*(main)|(test).*");
             String extension = FilenameUtils.getExtension(dirName);
             if (!canSkip && extension.equals("java")) {
-                parseClassMethods(dir, methodLines);
+                try {
+                    parseClassMethods(dir, methodLines);
+                } catch (ParseProblemException ignored) {
+                    // ignore files that can not be parsed
+                } catch (FileNotFoundException ignored) {
+                    // ignore files that could not be located
+                }
             }
         }
     }
