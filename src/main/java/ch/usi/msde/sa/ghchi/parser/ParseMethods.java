@@ -36,6 +36,8 @@ public class ParseMethods {
     static String bin = "/bin/sh";
     static String directory = "/tmp/clonedRepo";
 
+    static int max_project_methods = 1000;
+
     public static void main(String[] args) throws Exception {
         String csvFileName = args[0];
         Scanner scanner = new Scanner(new File("./repolist.txt"));
@@ -186,7 +188,7 @@ public class ParseMethods {
     private static void saveMethods(String filePath, List<Pair<String, String>> dataLines) throws IOException {
         FileWriter writer = new FileWriter(filePath, true);
         Collections.shuffle(dataLines);
-        dataLines = dataLines.stream().limit(1000).collect(Collectors.toList());
+        dataLines = dataLines.stream().limit(max_project_methods).collect(Collectors.toList());
 
         CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT);
         for (Pair<String, String> line : dataLines) {
