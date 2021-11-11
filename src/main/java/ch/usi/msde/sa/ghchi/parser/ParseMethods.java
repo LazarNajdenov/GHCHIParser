@@ -111,7 +111,7 @@ public class ParseMethods {
 
     /**
      * Methods used for parsing the methods for each class
-     * */
+     */
     private static void parseClassMethods(File file, List<Pair<String, String>> dataLines) throws FileNotFoundException {
         new VoidVisitorAdapter<>() {
             @Override
@@ -132,10 +132,10 @@ public class ParseMethods {
                             .map(ParseMethods::removeJavadocMetadata)
                             .map(ParseMethods::removeJavadocFormatting)
                             .map(CharMatcher.ascii()::retainFrom)
+                            .map(ParseMethods::extractFirstSentence)
+                            .map(ParseMethods::removePunctuation)
                             .map(StringUtils::normalizeSpace)
-                            .map(String::toLowerCase)
                             .map(String::trim)
-                            // TODO: 10.11.21 Remove stop-words
                             .map(comment -> (!comment.isEmpty()) ? comment + " <SEP> " : null)
                             .orElse("");
 
