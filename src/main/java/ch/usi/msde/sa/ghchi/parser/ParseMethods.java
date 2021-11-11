@@ -69,9 +69,13 @@ public class ParseMethods {
         process.waitFor();
     }
 
-    private static void deleteClone(String repositoryName) throws IOException {
+    private static void deleteClone(String repositoryName) {
         File repoDir = new File(getRepositoryPath(repositoryName.split("/")[0]));
-        FileUtils.deleteDirectory(repoDir);
+        try {
+            FileUtils.deleteDirectory(repoDir);
+        } catch (Exception ignored) {
+            //if clone deletion fails, just move on
+        }
     }
 
 
