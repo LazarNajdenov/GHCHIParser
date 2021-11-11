@@ -153,7 +153,7 @@ public class ParseMethods {
     }
 
     private static String replaceJavadocLiterals(String text) {
-        return text.replaceAll("\\{@(?:code|literal|serial(?:Data|Field)?|docRoot|inheritDoc)\\s?(.*?)}", "$1");
+        return text.replaceAll("\\{@(?:code|literal|serial(?:Data|Field)?|docRoot|inheritDoc)\\s?([^}]*)}", "$1");
     }
 
     private static String removeHTMLTags(String text) {
@@ -161,7 +161,7 @@ public class ParseMethods {
     }
 
     private static String removePreformattedText(String text) {
-        return text.replaceAll("(\\s\\*\\s)*<pre>(.|\\n)*?</pre>", " ");
+        return text.replaceAll("(?:\\s\\*\\s)*<pre>[\\s\\S]*?</pre>", " ");
     }
 
     private static String removeJavadocMetadata(String text) {
