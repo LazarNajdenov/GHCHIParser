@@ -82,13 +82,12 @@ public class ParseMethods {
 
     /**
      * Methods used to iterate through all the java files in the directory and parse them successively
-     * */
-    public static void parseJavaFiles(File dir, List<Pair<String, String>> methodLines) throws IOException {
+     */
+    @SuppressWarnings("ConstantConditions")
+    public static void parseJavaFiles(File dir, List<Pair<String, String>> methodLines) {
         String dirName = dir.getName();
         if (dir.isDirectory()) {
-            File[] files = dir.listFiles();
-            File[] validFiles = Objects.requireNonNull(files);
-            for (File file : validFiles) {
+            for (File file : dir.listFiles()) {
                 if (!canSkip(dirName, ".*(test).*")) parseJavaFiles(file, methodLines);
             }
         } else {
