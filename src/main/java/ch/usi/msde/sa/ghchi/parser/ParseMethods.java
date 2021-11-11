@@ -170,6 +170,14 @@ public class ParseMethods {
         return text.replaceAll("((/\\*)?\\*\\s?/?)", " ");
     }
 
+    private static String extractFirstSentence(String text) {
+        return text.split("[.!?]")[0];
+    }
+
+    private static String removePunctuation(String text) {
+        return text.replaceAll("[^A-Za-z0-9]", " ");
+    }
+
     /**
      * Used for saving the extracted methods to a CSV file.
      *
