@@ -9,12 +9,10 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.google.common.base.CharMatcher;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
@@ -123,18 +121,7 @@ public class ParseMethods {
                 if (bodyBlock.isPresent() && !isTestMethod && correctSize) {
                     String javaDoc = declaration.getJavadocComment()
                             .map(JavadocComment::toString)
-                            .map(ParseMethods::removePreformattedText)
-                            .map(ParseMethods::replaceJavadocReferences)
-                            .map(ParseMethods::replaceJavadocLiterals)
-                            .map(ParseMethods::removeHTMLTags)
-                            .map(ParseMethods::removeJavadocMetadata)
-                            .map(ParseMethods::removeJavadocFormatting)
-                            .map(CharMatcher.ascii()::retainFrom)
-                            .map(ParseMethods::extractFirstSentence)
-                            .map(ParseMethods::removePunctuation)
-                            .map(StringUtils::normalizeSpace)
-                            .map(String::trim)
-                            .map(comment -> (!comment.isEmpty()) ? comment + " <SEP> " : null)
+                            .map(StringProcessors::processJavadocString)
                             .orElse("");
 
                     String signature = declaration.getType() + " " + declaration.getNameAsString();
@@ -146,46 +133,13 @@ public class ParseMethods {
 
                     String body = bodyBlock
                             .map(BlockStmt::toString)
-                            .map(CharMatcher.ascii()::retainFrom)
-                            .map(StringUtils::normalizeSpace)
+                            .map(StringProcessors::processMethodString)
                             .orElse(";");
 
                     dataLines.add(Pair.of(name, javaDoc + signature + parameters + body));
                 }
             }
         }.visit(StaticJavaParser.parse(file), null);
-    }
-
-    private static String replaceJavadocReferences(String text) {
-        return text.replaceAll("\\{@(?:value|link(?:plain)?)\\s(?:.*?#)?(\\w+).*?}", "$1");
-    }
-
-    private static String replaceJavadocLiterals(String text) {
-        return text.replaceAll("\\{@(?:code|literal|serial(?:Data|Field)?|docRoot|inheritDoc)\\s?([^}]*)}", "$1");
-    }
-
-    private static String removeHTMLTags(String text) {
-        return text.replaceAll("<[^>]*>", " ");
-    }
-
-    private static String removePreformattedText(String text) {
-        return text.replaceAll("(?:\\s\\*\\s)*<pre>[\\s\\S]*?</pre>", " ");
-    }
-
-    private static String removeJavadocMetadata(String text) {
-        return text.split("\\*\\s*@.*")[0];
-    }
-
-    private static String removeJavadocFormatting(String text) {
-        return text.replaceAll("((/\\*)?\\*\\s?/?)", " ");
-    }
-
-    private static String extractFirstSentence(String text) {
-        return text.split("[.!?]")[0];
-    }
-
-    private static String removePunctuation(String text) {
-        return text.replaceAll("[^A-Za-z0-9]", " ");
     }
 
     /**

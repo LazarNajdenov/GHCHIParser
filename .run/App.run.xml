@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="App" type="Application" factoryName="Application">
+  <configuration default="false" name="ParseMethods" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="ch.usi.msde.sa.ghchi.parser.ParseMethods" />
     <module name="maven-template-repository" />
     <option name="PROGRAM_PARAMETERS" value="./tmp/methods.csv" />
