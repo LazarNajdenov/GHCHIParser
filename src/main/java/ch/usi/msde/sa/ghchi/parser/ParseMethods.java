@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -124,8 +125,17 @@ public class ParseMethods {
                             .map(StringProcessors::processJavadocString)
                             .orElse("");
 
+                    declaration.getAnnotations().clear();
+                    Type type = declaration.getType();
+                    type.getAnnotations().clear();
+                    type.getComment().ifPresent(type::remove);
+
                     String signature = declaration.getType() + " " + declaration.getNameAsString();
                     String parameters = declaration.getParameters().stream()
+                            .peek(parameter -> {
+                                parameter.getAnnotations().clear();
+                                parameter.getComment().ifPresent(parameter::remove);
+                            })
                             .map(Node::toString)
                             .collect(Collectors.joining(", ", "(", ") "));
 
