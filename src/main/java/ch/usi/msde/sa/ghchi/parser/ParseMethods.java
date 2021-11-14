@@ -61,7 +61,7 @@ public class ParseMethods {
         File repoDir = new File(getRepositoryPath(repositoryName.split("/")[0]));
         Files.createDirectories(repoDir.toPath());
         String[] cmd = new String[]{
-                bin, "-c", String.format("git clone https://github.com/%s.git", repositoryName)
+                bin, "-c", String.format("git clone --depth 1 https://github.com/%s.git", repositoryName)
         };
         Process process = Runtime.getRuntime().exec(cmd, null, repoDir);
         process.waitFor();
