@@ -5,12 +5,11 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.google.common.base.CharMatcher;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -35,8 +34,17 @@ class ParseExample {
                     super.visit(declaration, arg);
                     Optional<BlockStmt> bodyBlock = declaration.getBody();
                     if (bodyBlock.isPresent()) {
+                        declaration.getAnnotations().clear();
+                        Type type = declaration.getType();
+                        type.getAnnotations().clear();
+                        type.getComment().ifPresent(type::remove);
+
                         String signature = declaration.getType() + " " + declaration.getNameAsString();
                         String parameters = declaration.getParameters().stream()
+                                .peek(parameter -> {
+                                    parameter.getAnnotations().clear();
+                                    parameter.getComment().ifPresent(parameter::remove);
+                                })
                                 .map(Node::toString)
                                 .collect(Collectors.joining(", ", "(", ") "));
 
@@ -44,8 +52,7 @@ class ParseExample {
 
                         String body = bodyBlock
                                 .map(BlockStmt::toString)
-                                .map(CharMatcher.ascii()::retainFrom)
-                                .map(StringUtils::normalizeSpace)
+                                .map(StringProcessors::processMethodString)
                                 .orElse(";");
 
                         methods.add(signature + parameters + body);
