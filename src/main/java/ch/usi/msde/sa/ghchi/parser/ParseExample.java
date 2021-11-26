@@ -11,10 +11,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +22,7 @@ class ParseExample {
         Reader in = new FileReader(args[0]);
         Iterable<CSVRecord> records = CSVFormat.DEFAULT.parse(in);
         List<String> methods = new ArrayList<>();
+        List<String> methodsNames = new ArrayList<>();
         for (CSVRecord record : records) {
             String methodStr = record.get(3);
 
@@ -39,7 +37,7 @@ class ParseExample {
                         type.getAnnotations().clear();
                         type.getComment().ifPresent(type::remove);
 
-                        String signature = declaration.getType() + " " + declaration.getNameAsString();
+                        String signature = declaration.getType() + " <extra_id_0>";
                         String parameters = declaration.getParameters().stream()
                                 .peek(parameter -> {
                                     parameter.getAnnotations().clear();
@@ -55,18 +53,28 @@ class ParseExample {
                                 .map(StringProcessors::processMethodString)
                                 .orElse(";");
 
-                        methods.add(signature + parameters + body);
+                        methods.add("<SEP> " + signature + parameters + body);
+                        methodsNames.add(declaration.getNameAsString());
                     }
                 }
             }.visit(StaticJavaParser.parse("public class DummyClass {\n" + methodStr + "\n}"), null);
 
-            FileWriter writer = new FileWriter("assignment_test_cleaned.csv");
-            CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT);
+            FileWriter writerInput = new FileWriter("challenge_inputs.txt");
+            FileWriter writerTarget = new FileWriter("challenge_targets.txt");
+            BufferedWriter bufferedWriterInput = new BufferedWriter(writerInput);
+            BufferedWriter bufferedWriterTarget = new BufferedWriter(writerTarget);
             for (String method : methods) {
-                printer.printRecord(method);
+                bufferedWriterInput.write(method);
+                bufferedWriterInput.newLine();
+             }
+            for (String methodName: methodsNames) {
+                bufferedWriterTarget.write(methodName);
+                bufferedWriterTarget.newLine();
             }
-
-            writer.close();
+            bufferedWriterInput.close();
+            bufferedWriterTarget.close();
+            writerInput.close();
+            writerTarget.close();
         }
     }
 }

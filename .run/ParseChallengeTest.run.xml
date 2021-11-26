@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ParseChallengeTest" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="ch.usi.msde.sa.ghchi.parser.ParseExample" />
+    <module name="maven-template-repository" />
+    <option name="PROGRAM_PARAMETERS" value="/tmp/test.csv" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
